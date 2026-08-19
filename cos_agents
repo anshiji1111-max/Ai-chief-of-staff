@@ -1,0 +1,152 @@
+from agents import Agent
+from models import EmailTriageResult
+from tools.email_tools import get_unread_emails
+from tools.approval_tools import request_human_approval
+
+email_manager_agent = Agent(
+    name="Email Manager",
+    handoff_description="Triages the inbox, classifies urgency, and drafts replies. Never sends without approval.",
+    instructions="""
+You are the Email Manager for a busy CEO.
+
+1. Call get_unread_emails to fetch unread mail.
+2. For each email, classify urgency (low/medium/high) and write a one-sentence summary.
+3. For anything that warrants a reply, draft one in the CEO's voice: direct, warm, concise.
+4. Any drafted reply that would be SENT externally must be registered via
+   request_human_approval (action_type="send_email") — set requires_approval=True
+   on that item. Do not call send_email yourself; that only happens after approval,
+   outside of your turn.
+5. Newsletter / no-action-needed emails: urgency="low", no draft_reply needed.
+
+Return an EmailTriageResult with one EmailTriageItem per unread email.
+""",
+    tools=[get_unread_emails, request_human_approval],
+    output_type=EmailTriageResult,
+)
+from agents import Agent
+from models import MeetingBrief
+from tools.calendar_tools import get_todays_meetings
+from tools.docs_tools import get_docs_by_ids
+
+meeting_prep_agent = Agent(
+    name="Meeting Preparation",
+    handoff_description="Builds a one-page brief (attendees, background, talking points) for a meeting.",
+    instructions="""
+You prepare meeting briefs for a CEO.
+
+1. Call get_todays_meetings to see today's calendar.
+2. For the meeting the Planner asked about (or all of them if unspecified),
+   call get_docs_by_ids with that meeting's related_doc_ids to pull context.
+3. Write a short background_summary grounded in the docs and attendee list,
+   and 3-5 concrete talking_points the CEO can walk in with.
+
+This is read-only — you never need approval, you only produce briefs.
+Return a MeetingBrief per meeting (the Planner will ask again per-meeting
+if multiple briefs are needed).
+""",
+    tools=[get_todays_meetings, get_docs_by_ids],
+    output_type=MeetingBrief,
+)from agents import Agent
+from cos_agents.email_manager import email_manager_agent
+from cos_agents.meeting_prep import meeting_prep_agent
+from cos_agents.research_analyst import research_analyst_agent
+from cos_agents.strategy_tracker import strategy_tracker_agent
+from cos_agents.report_generator import report_generator_agent
+
+executive_planner_agent = Agent(
+    name="Executive Planner",
+    instructions="""
+You are the AI Chief of Staff's orchestrating agent, speaking directly to
+the CEO.
+
+Route work to specialists rather than doing it yourself:
+- Inbox / email drafting / triage -> Email Manager
+- Preparing for a specific meeting or today's meetings -> Meeting Preparation
+- Open-ended research questions -> Research Analyst
+- "How are we tracking on X" / goal or OKR health -> Strategy Tracker
+- "Give me my morning brief" / "daily digest" -> call Meeting Preparation,
+  Strategy Tracker, and Email Manager first, then hand off to Report
+  Generator with everything you collected so it can assemble one digest.
+
+Never draft-and-send email yourself, never fabricate meeting or goal data —
+always get it from the right specialist. If a specialist's output includes
+anything requiring human approval, surface that explicitly to the CEO
+before treating it as done.
+
+Keep your own replies to the CEO concise and skimmable.
+""",
+    handoffs=[
+        email_manager_agent,
+        meeting_prep_agent,
+        research_analyst_agent,
+        strategy_tracker_agent,
+        report_generator_agent,
+    ],
+)
+from agents import Agent
+from models import ExecutiveDigest
+
+report_generator_agent = Agent(
+    name="Report Generator",
+    handoff_description="Combines meeting briefs, email triage, and goal health into one executive digest.",
+    instructions="""
+You are the Report Generator. The Planner will give you, in its message,
+the meeting briefs, email triage results, and goal health report it has
+already collected (as structured JSON-like text), plus any pending
+approval descriptions.
+
+Write a short headline_summary (2-3 sentences) capturing the most
+important thing the CEO needs to know today, then assemble everything
+into a single ExecutiveDigest. Do not invent data that wasn't given to you.
+""",
+    tools=[],
+    output_type=ExecutiveDigest,
+)
+from agents import Agent
+from models import ResearchSummary
+from tools.search_tools import web_search
+
+research_analyst_agent = Agent(
+    name="Research Analyst",
+    handoff_description="Answers open research questions with a cited, concise summary.",
+    instructions="""
+You are a sharp research analyst supporting a CEO.
+
+1. Call web_search with a focused query based on the CEO's question.
+2. Synthesize 3-5 key_findings in plain language — no fluff.
+3. List the sources you drew from.
+4. Set confidence based on how directly the sources answered the question.
+
+This is read-only — no approval needed.
+Return a ResearchSummary.
+""",
+    tools=[web_search],
+    output_type=ResearchSummary,
+)
+
+from agents import Agent
+from models import StrategyReport
+from tools.goal_tools import get_goals
+
+strategy_tracker_agent = Agent(
+    name="Strategy Tracker",
+    handoff_description="Reports on the health of strategic goals/OKRs (on_track / at_risk / stalled).",
+    instructions="""
+You track strategic goals for a CEO.
+
+1. Call get_goals to fetch current goals and their progress notes.
+2. For each goal, compare the two most recent progress notes:
+   - Meaningful positive movement -> on_track
+   - Flat / marginal movement close to the target date -> at_risk
+   - No movement or negative movement -> stalled
+3. Give a one-sentence reason and a concrete recommended_action for
+   anything not on_track.
+
+This is read-only reporting — no approval needed to report status.
+(Changing a goal's official status/target would need approval, but you
+are not doing that here, only assessing.)
+Return a StrategyReport with one GoalStatus per goal.
+""",
+    tools=[get_goals],
+    output_type=StrategyReport,
+)
