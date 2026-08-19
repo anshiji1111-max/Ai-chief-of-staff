@@ -1,0 +1,95 @@
+from agents import function_tool, RunContextWrapper
+from context import AppContext
+
+
+@function_tool
+def request_human_approval(
+    wrapper: RunContextWrapper[AppContext],
+    action_type: str,
+    description: str,
+    payload_json: str,
+) -> str:
+    """
+    Register an action as pending human approval instead of executing it
+    immediately. Use this for anything external/irreversible: sending an
+    email, committing to a meeting time with an external party, or closing
+    out a strategic goal. Returns an approval_id; the action must not be
+    executed until a human approves it via the CLI prompt in main.py.
+    """
+    import json
+
+    ctx = wrapper.context
+    payload = json.loads(payload_json)
+    approval_id = ctx.add_pending_approval(action_type, description, payload)
+    return approval_id
+from agents import function_tool, RunContextWrapper
+from context import AppContext
+
+
+@function_tool
+def get_todays_meetings(wrapper: RunContextWrapper[AppContext]) -> list[dict]:
+    """Return today's calendar events (mocked Calendar API)."""
+    ctx = wrapper.context
+    return ctx.mock_data.get("calen
+from agents import function_tool, RunContextWrapper
+from context import AppContext
+
+
+@function_tool
+def get_docs_by_ids(wrapper: RunContextWrapper[AppContext], doc_ids: list[str]) -> list[dict]:
+    """Fetch document metadata/summaries for the given doc IDs (mocked Drive/Docs API)."""
+    ctx = wrapper.context
+    all_docs = {d["doc_id"]: d for d in ctx.mock_data.get("docs", [])}
+    return [all_docs[d] for d in doc_ids if d in all_docs]
+dar", [])
+
+from agents import function_tool, RunContextWrapper
+from context import AppContext
+
+
+@function_tool
+def get_unread_emails(wrapper: RunContextWrapper[AppContext]) -> list[dict]:
+    """Return unread emails from the inbox (mocked Gmail/Outlook API)."""
+    ctx = wrapper.context
+    return [e for e in ctx.mock_data.get("emails", []) if not e.get("read", False)]
+
+
+def send_email_impl(thread_id: str, body: str) -> str:
+    """
+    Plain (non-tool-wrapped) implementation, called directly from the human
+    approval loop in main.py AFTER a human has approved the action — never
+    exposed to an agent as a callable tool, so an agent can never send mail
+    on its own.
+    """
+    # In a real system this would call the Gmail/Outlook send endpoint.
+    return f"[MOCK SEND] Reply to thread {thread_id} sent: {body[:60]}..."
+
+from agents import function_tool, RunContextWrapper
+from context import AppContext
+
+
+@function_tool
+def get_goals(wrapper: RunContextWrapper[AppContext]) -> list[dict]:
+    """Return current strategic goals/OKRs with their progress notes (mocked tracker API)."""
+    ctx = wrapper.context
+    return ctx.mock_data.get("goals", [])
+
+
+from agents import function_tool, RunContextWrapper
+from context import AppContext
+
+# In production, swap this for the SDK's hosted WebSearchTool, or a real
+# search API call. Mocked here so the project runs with no external keys.
+_MOCK_RESULTS = {
+    "default": [
+        {"title": "Industry pricing trends report", "url": "https://example.com/pricing-trends"},
+        {"title": "Competitor X raises prices 8%", "url": "https://example.com/competitor-x"},
+        {"title": "SaaS benchmarks Q2 2026", "url": "https://example.com/saas-benchmarks"},
+    ]
+}
+
+
+@function_tool
+def web_search(wrapper: RunContextWrapper[AppContext], query: str) -> list[dict]:
+    """Search the web for a query and return a short list of result titles/URLs (mocked)."""
+    return _MOCK_RESULTS.get(query.lower(), _MOCK_RESULTS["default"])
