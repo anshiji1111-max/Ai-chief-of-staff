@@ -1,0 +1,72 @@
+{
+  "calendar": [
+    {
+      "event_id": "evt_001",
+      "title": "Q3 Board Sync",
+      "start": "2026-08-19T10:00:00",
+      "end": "2026-08-19T11:00:00",
+      "attendees": ["Priya Shah (Board Chair)", "Daniel Ortiz (CFO)"],
+      "related_doc_ids": ["doc_001"]
+    },
+    {
+      "event_id": "evt_002",
+      "title": "1:1 with Sarah (VP Sales)",
+      "start": "2026-08-19T14:00:00",
+      "end": "2026-08-19T14:30:00",
+      "attendees": ["Sarah Kim (VP Sales)"],
+      "related_doc_ids": ["doc_002"]
+    }
+  ],
+  "emails": [
+    {
+      "thread_id": "th_101",
+      "from": "priya.shah@boardmail.com",
+      "subject": "Board deck feedback",
+      "body": "Can you send the updated board deck before tomorrow's sync? Also wanted to flag the churn slide looks off.",
+      "received": "2026-08-18T21:14:00",
+      "read": false
+    },
+    {
+      "thread_id": "th_102",
+      "from": "sarah.kim@company.com",
+      "subject": "Re: pipeline review",
+      "body": "Confirming our 1:1 today at 2pm still works. Also, can we discuss the EMEA hire?",
+      "received": "2026-08-19T08:02:00",
+      "read": false
+    },
+    {
+      "thread_id": "th_103",
+      "from": "newsletter@industryinsights.com",
+      "subject": "Weekly SaaS digest",
+      "body": "Top 5 SaaS trends this week...",
+      "received": "2026-08-19T06:00:00",
+      "read": false
+    }
+  ],
+  "goals": [
+    {
+      "goal_id": "goal_01",
+      "name": "Reduce churn to under 4%",
+      "owner": "Sarah Kim",
+      "target_date": "2026-09-30",
+      "progress_notes": [
+        {"date": "2026-08-01", "note": "Churn at 5.1%, cohort analysis in progress"},
+        {"date": "2026-08-15", "note": "Churn at 5.0%, minimal movement"}
+      ]
+    },
+    {
+      "goal_id": "goal_02",
+      "name": "Close Series B",
+      "owner": "CEO",
+      "target_date": "2026-10-15",
+      "progress_notes": [
+        {"date": "2026-08-01", "note": "Term sheet under negotiation with lead investor"},
+        {"date": "2026-08-17", "note": "Term sheet signed, moving to due diligence"}
+      ]
+    }
+  ],
+  "docs": [
+    {"doc_id": "doc_001", "title": "Q3 Board Deck v3", "summary": "Covers revenue, churn, and hiring plan for Q3."},
+    {"doc_id": "doc_002", "title": "Sales Pipeline Notes - Aug", "summary": "Pipeline coverage ratio and EMEA expansion notes."}
+  ]
+}
